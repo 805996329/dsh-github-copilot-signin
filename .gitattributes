@@ -1,0 +1,7 @@
+# Keep the published tree LF-only: this is a JavaScript package loaded directly by
+# Node, and a Windows checkout with core.autocrlf=true would otherwise hand
+# contributors CRLF sources that differ from what is committed.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.woff2 binary

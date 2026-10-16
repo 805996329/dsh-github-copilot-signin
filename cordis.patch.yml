@@ -1,0 +1,11 @@
+# Bundle patch for dsh-github-copilot-signin.
+#
+# One host plugin row. No client module: this bundle deliberately ships no browser
+# code, because a custom client surface would need a `typert` Remote whose two ends
+# are produced by @deepseek-ai/dsh-typert-generator, which ships with the DSH source
+# tree rather than the runtime. The interactive part is delivered through the
+# session's own question card instead, which every desktop GUI already renders.
+- insert:
+    - id: github-copilot-signin
+      name: dsh-github-copilot-signin
+      config: {}

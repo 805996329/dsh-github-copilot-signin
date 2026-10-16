@@ -1,0 +1,48 @@
+{
+  "name": "dsh-github-copilot-signin",
+  "version": "0.1.0",
+  "description": "Sign in to GitHub Copilot from inside a DSH session, without a terminal.",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "dsh-bundle",
+    "github-copilot",
+    "sign-in",
+    "device-code"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/805996329/dsh-github-copilot-signin.git"
+  },
+  "homepage": "https://github.com/805996329/dsh-github-copilot-signin#readme",
+  "bugs": {
+    "url": "https://github.com/805996329/dsh-github-copilot-signin/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "~4.0.4",
+    "@deepseek-ai/dsh-authorization": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-credentials": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-tools": "0.2.0-rc.2",
+    "@deepseek-ai/dsh-user-questions": "0.2.0-rc.2"
+  }
+}
