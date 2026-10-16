@@ -192,12 +192,18 @@ function registerSignInTool(ctx) {
 
       const flow = ctx.authorization.describe(recordKey);
       if (flow === undefined) {
+        // The adapter registers one flow per *configured* route, so this state means
+        // the route is missing — not that the adapter is unmounted. A fresh DSH mounts
+        // llm-pi-ai with no providers at all, which is the common way in here.
         return {
           status: 'unavailable',
           provider,
           detail:
-            `No authorization flow is registered for "${recordKey}". The llm-pi-ai adapter registers one per installed ` +
-            'pi-ai catalog provider when it mounts; mount @deepseek-ai/dsh-llm-pi-ai (and dsh-authorization) in this profile.',
+            `The "${provider}" provider route is not configured, so no authorization flow exists for "${recordKey}". ` +
+            'Add it in DSH: Settings → Models → Add model provider → Third-party model provider → choose ' +
+            `"${provider}" → Save, then reload the page and ask again. ` +
+            '(A composition that does not mount @deepseek-ai/dsh-llm-pi-ai at all shows the same error: the route has ' +
+            'to exist before any provider can be signed into.)',
         };
       }
 

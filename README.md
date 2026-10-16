@@ -22,6 +22,26 @@ dsh plugin --profile desktop add 'github:805996329/dsh-github-copilot-signin'
 
 或在 DSH 侧边栏 → **Plugins** → **Add plugin** → 粘贴 `github:805996329/dsh-github-copilot-signin` → **Install** → **Enable now**，然后**刷新页面**。
 
+## ⚠️ 第 2 步：配置供应商路由（跳过这步登录必定失败）
+
+全新安装的 DSH 里，`llm-pi-ai` 适配器是挂载着的，但**一条供应商路由都没配置**。而授权流程是**按路由注册**的：路由不存在，登录工具就只会返回 `unavailable`，提示「`github-copilot` 路由未配置」。
+
+所以装完插件后，先加这条路由：
+
+> **设置 → Models → Add model provider → Third-party model provider → 选 `github-copilot` → 保存**，然后**刷新页面**。
+
+想改用配置文件的话，在 profile 的 `cordis.patch.yml` 里给 `llm-pi-ai` 加：
+
+```yaml
+- id: llm-pi-ai
+  name: "@deepseek-ai/dsh-llm-pi-ai"
+  config:
+    providers:
+      github-copilot: {}
+```
+
+> **注意 patch 是整行替换，不是合并。** 如果你已经把 `llm-pi-ai` 用于别的供应商，必须把已有的 provider 一并写全，否则会被这一行静默覆盖掉。
+
 ## 使用
 
 在会话里对 agent 说：
@@ -41,9 +61,9 @@ dsh plugin --profile desktop add 'github:805996329/dsh-github-copilot-signin'
 
 ## 前置条件
 
-- DSH `0.2.0-rc.2`。
-- profile 里挂着 `llm-pi-ai`（`dsh-base` 默认包含）与 `dsh-authorization`。若没挂，工具会明确告诉你缺什么，而不是静默失败。
-- 你的 GitHub 账号有 Copilot 订阅（个人版 / 商业版 / 企业版均可）。
+- DSH `0.2.0-rc.2`（版本不符会在安装时被拒绝，并给出 `dsh plugin allow-version` 豁免命令）。
+- 已按上面**第 2 步**配置好 `github-copilot` 供应商路由。profile 里挂着 `llm-pi-ai`（`dsh-base` 默认包含）与 `dsh-authorization`。
+- 你的 GitHub 账号有 Copilot 订阅（个人版 / 商业版 / 企业版均可）。没有订阅的话，设备码能走完，但换取 Copilot token 会失败。
 
 ## 几个刻意的设计
 
