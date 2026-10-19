@@ -252,9 +252,8 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
   console.log('ok  grant without account:', result.status, '| credential keys:', Object.keys(result.credential).join(','));
 }
 
-// 3c. REGRESSION: pi-ai's first prompt is "GitHub Enterprise URL/domain (blank for
-//     github.com)" and a blank answer means github.com. Treating blank as a refusal
-//     aborted the whole flow before it ever asked for a device code.
+// 3c. REGRESSION: pi-ai's enterprise prompt is answered by the domain card, never asked
+//     twice — and a blank host (github.com) must not be read as a refusal.
 {
   let committed;
   const h = createHarness({
@@ -264,7 +263,7 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
         message: 'GitHub Enterprise URL/domain (blank for github.com)',
         placeholder: 'company.ghe.com',
       });
-      assert.equal(host, '', 'a blank answer must reach the flow unchanged');
+      assert.equal(host, '', 'github.com must reach pi-ai as a blank host');
       await h.phase.deviceCodeAnswered;
       committed = { kind: 'grant', payload: { type: 'oauth', access: 'tok', expires: Date.now() + 60000, availableModelIds: ['gpt-5.5'] } };
       return { status: 'authorized' };
@@ -272,7 +271,6 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
     record: undefined,
     answers: {
       domain: { selected: [GITHUB_COM_LABEL] },
-      flow: { custom: '' }, // the human pressed Enter on a blank field
       deviceCode: async () => {
         await sleep(30);
         return { selected: [DONE] };
@@ -284,9 +282,9 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
 
   const result = await signIn(h.ctx).execute({}, execCtx());
   assert.equal(result.status, 'authorized', 'a blank enterprise host must not cancel the sign-in');
-  assert.deepEqual(h.answered, ['domain', 'flow-prompt', 'device-code']);
+  assert.deepEqual(h.answered, ['domain', 'device-code'], 'the enterprise question is not asked twice');
   expectLossless('blank enterprise host', result);
-  console.log('ok  blank enterprise host:', result.status, '| cards:', h.answered.join(' -> '));
+  console.log('ok  enterprise prompt auto-answered:', result.status, '| cards:', h.answered.join(' -> '));
 }
 
 // 4. cancellation on the confirmation card aborts the attempt
@@ -318,8 +316,8 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
   console.log('ok  cancel on domain:', result.status);
 }
 
-// 6. GitHub Enterprise: the host is collected from a card, and pi-ai's own enterprise
-//    prompt becomes a card too, so the flow needs no terminal
+// 6. GitHub Enterprise: the host is collected from a card and handed to pi-ai's own
+//    enterprise prompt without asking the human twice
 {
   const seen = [];
   const h = createHarness({
@@ -332,7 +330,6 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
     answers: {
       domain: { selected: [GHE_LABEL] },
       enterpriseHost: { custom: 'company.ghe.com' },
-      flow: { custom: 'company.ghe.com' },
       deviceCode: async () => {
         await sleep(40);
         return { selected: [DONE] };
@@ -343,7 +340,7 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
   const result = await signIn(h.ctx).execute({}, execCtx());
   assert.equal(result.status, 'reauthorized', 'an existing record means re-authorization');
   assert.deepEqual(seen, ['company.ghe.com'], 'the flow must receive the host typed into the card');
-  assert.deepEqual(h.answered, ['domain', 'enterprise-host', 'flow-prompt', 'device-code']);
+  assert.deepEqual(h.answered, ['domain', 'enterprise-host', 'device-code'], 'enterprise host is asked once');
   assert.match(h.asked.find((q) => q.id === 'device-code').question, /company\.ghe\.com/);
   expectLossless('enterprise path', result);
   console.log('ok  enterprise path:', result.status, '| host given to pi-ai:', seen[0]);
@@ -360,7 +357,6 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
     },
     record: { kind: 'grant', payload: { type: 'oauth', access: 'tok', expires: Date.now() + 60000, availableModelIds: [] } },
     answers: {
-      flow: { custom: 'ghe.example.com' },
       deviceCode: async () => {
         await sleep(40);
         return { selected: [DONE] };
@@ -371,7 +367,7 @@ assert.deepEqual(inject, ['tools', 'authorization', 'userQuestions']);
   const result = await signIn(h.ctx).execute({ domain: 'ghe.example.com' }, execCtx());
   assert.equal(result.status, 'reauthorized');
   assert.deepEqual(seen, ['ghe.example.com']);
-  assert.deepEqual(h.answered, ['flow-prompt', 'device-code'], 'no domain cards when the argument supplies the domain');
+  assert.deepEqual(h.answered, ['device-code'], 'no domain cards when the argument supplies the domain');
   expectLossless('explicit domain', result);
   console.log('ok  explicit domain:', result.status);
 }

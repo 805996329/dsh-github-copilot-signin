@@ -250,15 +250,20 @@ function registerSignInTool(ctx) {
                 }
               },
               async prompt(question) {
+                // pi-ai opens with its own GitHub Enterprise question. The domain card
+                // above has already answered it, so asking again would be a duplicate —
+                // and a second chance for the human to dismiss the flow by accident.
+                if (/Enterprise URL\/domain/i.test(String(question.message))) {
+                  return domainChoice.domain ?? '';
+                }
                 const answered = await askOne(ctx, exec, {
                   id: 'flow-prompt',
                   header: 'GitHub Copilot',
                   question: question.message,
                   ...(question.placeholder === undefined ? {} : { detail: `Example: ${question.placeholder}` }),
                 });
-                // A blank answer is data, not a refusal: pi-ai asks for a GitHub
-                // Enterprise host and documents "blank for github.com". Treating blank as
-                // a decline aborted the flow before it ever requested a device code.
+                // A blank answer is data, not a refusal: pi-ai documents "blank for
+                // github.com", so treating blank as a decline aborted the whole flow.
                 if (answered === undefined) throw new AuthorizationDeclinedError();
                 const chosen = answered.selected?.[0];
                 if (chosen !== undefined && chosen === ANSWERS.cancel) throw new AuthorizationDeclinedError();
