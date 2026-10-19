@@ -61,7 +61,7 @@ dsh plugin --profile desktop add 'github:805996329/dsh-github-copilot-signin'
 
 ## 前置条件
 
-- DSH `0.2.0-rc.2`（版本不符会在安装时被拒绝，并给出 `dsh plugin allow-version` 豁免命令）。
+- DSH `0.2.0-rc.2` 或 `0.2.1-rc.2`（版本不符会在安装时被拒绝，并给出 `dsh plugin allow-version` 豁免命令）。
 - 已按上面**第 2 步**配置好 `github-copilot` 供应商路由。profile 里挂着 `llm-pi-ai`（`dsh-base` 默认包含）与 `dsh-authorization`。
 - 你的 GitHub 账号有 Copilot 订阅（个人版 / 商业版 / 企业版均可）。没有订阅的话，设备码能走完，但换取 Copilot token 会失败。
 
@@ -80,7 +80,9 @@ dsh plugin --profile desktop add 'github:805996329/dsh-github-copilot-signin'
 
 ## 兼容性
 
-`peerDependencies` 精确钉住 DSH `0.2.0-rc.2`；安装前 DSH 会做一次 semver 校验，版本不符会被拒绝并给出 `dsh plugin allow-version` 的显式豁免命令。
+`peerDependencies` 写作 `^0.2.0-rc.2`，同时覆盖 DSH `0.2.0-rc.2` 与 `0.2.1-rc.2`。安装前 DSH 会做一次 semver 校验，版本不符会被拒绝并给出 `dsh plugin allow-version` 的显式豁免命令。
+
+**升级 DSH 后插件会被移除**：新版运行时对 `peerDependencies` 做严格校验，钉死旧版本的插件会被判为 `incompatible-version` 并从 profile 中摘掉。请安装本版本，或显式豁免。
 
 ## 自测
 
